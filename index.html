@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f97316" />
+  <title>PigShopTH — บันทึกทุน/ขาย/ค่าใช้จ่าย</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>🐷 PigShopTH</h1>
+    <div class="date-row">
+      <input type="date" id="datePicker"/>
+      <button id="btnToday">วันนี้</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="cards">
+      <div class="card">
+        <div class="label">ทุนหมูรวม</div>
+        <div class="value" id="valFund">฿0</div>
+      </div>
+      <div class="card">
+        <div class="label">ยอดขายสะสม</div>
+        <div class="value" id="valSales">฿0</div>
+      </div>
+      <div class="card">
+        <div class="label">ค่าใช้จ่ายรวม</div>
+        <div class="value" id="valExpense">฿0</div>
+      </div>
+      <div class="card">
+        <div class="label">กำไรวันนี้</div>
+        <div class="value" id="valProfit">฿0</div>
+      </div>
+    </section>
+
+    <section class="bars">
+      <div class="bar">
+        <div class="bar-head">
+          <span>ขายถึงทุนหมู</span>
+          <span id="remPig">ขาดอีก ฿0</span>
+        </div>
+        <div class="progress"><div id="progPig"></div></div>
+      </div>
+      <div class="bar">
+        <div class="bar-head">
+          <span>ครอบคลุมทั้งหมด</span>
+          <span id="remAll">ขาดอีก ฿0</span>
+        </div>
+        <div class="progress"><div id="progAll"></div></div>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button class="action" id="btnAddSale">+ ขาย</button>
+      <button class="action" id="btnAddExpense">+ ค่าใช้จ่าย</button>
+      <button class="action" id="btnAddFund">เพิ่มทุน</button>
+      <button class="action secondary" id="btnCloseDay">ปิดวัน / ส่งออก</button>
+    </section>
+
+    <section class="history">
+      <h2>ประวัติ (เดือนนี้)</h2>
+      <div id="monthSummary" class="month-summary"></div>
+      <div id="historyList" class="list"></div>
+    </section>
+  </main>
+
+  <!-- Dialogs -->
+  <dialog id="dlgSale">
+    <h3>เพิ่มยอดขาย</h3>
+    <div class="grid">
+      <label>จำนวน (บาท)</label>
+      <input id="saleAmount" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+      <label>หมายเหตุ</label>
+      <input id="saleNote" type="text" placeholder="">
+    </div>
+    <div class="chips" id="quickChips"></div>
+    <menu>
+      <button id="saleCancel">ยกเลิก</button>
+      <button id="saleSave" class="primary">บันทึก</button>
+    </menu>
+  </dialog>
+
+  <dialog id="dlgExpense">
+    <h3>เพิ่มค่าใช้จ่าย</h3>
+    <div class="grid">
+      <label>หมวด</label>
+      <select id="expCat">
+        <option>น้ำแข็ง</option>
+        <option>ค่าแรง</option>
+        <option>ขนส่ง</option>
+        <option>ถุง</option>
+        <option>อื่น ๆ</option>
+      </select>
+      <label>จำนวน (บาท)</label>
+      <input id="expAmount" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+      <label>หมายเหตุ</label>
+      <input id="expNote" type="text" placeholder="">
+    </div>
+    <menu>
+      <button id="expCancel">ยกเลิก</button>
+      <button id="expSave" class="primary">บันทึก</button>
+    </menu>
+  </dialog>
+
+  <dialog id="dlgFund">
+    <h3>เพิ่มทุนหมู</h3>
+    <div class="grid">
+      <label>จำนวน (บาท)</label>
+      <input id="fundAmount" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+      <label>ผู้ขาย</label>
+      <input id="fundSupplier" type="text" placeholder="">
+      <label>น้ำหนัก (กก.)</label>
+      <input id="fundWeight" type="number" inputmode="decimal" min="0" step="0.1" placeholder="">
+    </div>
+    <menu>
+      <button id="fundCancel">ยกเลิก</button>
+      <button id="fundSave" class="primary">เพิ่มทุน</button>
+    </menu>
+  </dialog>
+
+  <dialog id="dlgClose">
+    <h3>ปิดวัน / ส่งออก</h3>
+    <div class="grid">
+      <label>บันทึกเพิ่มเติม</label>
+      <input id="closeNote" type="text" placeholder="">
+      <label>Google Sheets Web App URL</label>
+      <input id="sheetsUrl" type="url" placeholder="https://script.google.com/...">
+    </div>
+    <div class="export-actions">
+      <button id="btnExportCSV" class="secondary">ส่งออก CSV (เดือนนี้)</button>
+      <button id="btnAppendSheets" class="secondary">Append วันนี้ → Sheets</button>
+    </div>
+    <div id="closeMsg" class="muted"></div>
+    <menu>
+      <button id="closeCancel">ปิด</button>
+    </menu>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

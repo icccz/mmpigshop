@@ -1,0 +1,29 @@
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,TH Sarabun New,Arial,sans-serif;background:#0b0b0c;color:#eee}
+header{position:sticky;top:0;background:#111;padding:12px 16px;border-bottom:1px solid #222}
+h1{margin:0;font-size:20px} .date-row{margin-top:8px;display:flex;gap:8px}
+button,input,select{font:inherit}
+main{padding:16px;display:flex;flex-direction:column;gap:16px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card{background:#18181b;border:1px solid #27272a;border-radius:14px;padding:12px}
+.card .label{color:#aaa;font-size:12px}.card .value{font-weight:700;font-size:20px}
+.bars .bar{margin:10px 0}
+.bar-head{display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:6px}
+.progress{height:10px;background:#262626;border-radius:8px;overflow:hidden}
+.progress>div{height:100%;width:0%;background:#f97316;transition:width .25s}
+.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.action{padding:14px;border-radius:12px;border:1px solid #27272a;background:#1f2937;color:#fff;font-weight:700}
+.action.secondary{background:#0b1220}
+.history h2{margin:8px 0}
+.list .row{padding:10px;border-bottom:1px solid #222}
+.row .title{font-weight:700}
+.row .meta{font-size:12px;color:#aaa}
+.month-summary{padding:10px;border:1px dashed #333;border-radius:10px;margin-bottom:8px;color:#ccc}
+dialog{border:none;border-radius:14px;padding:16px;background:#18181b;color:#eee;width:min(520px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.grid{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
+menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin-top:8px}
+.primary{background:#f97316;color:#000;font-weight:800}
+.secondary{border:1px solid #334155}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.chips button{padding:6px 10px;border-radius:999px;border:1px solid #334155;background:#0b1220;color:#eee}
+.muted{color:#9ca3af;font-size:12px;margin-top:6px}
