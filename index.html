@@ -1,1 +1,65 @@
-<!DOCTYPE html><html lang='th'><head><meta charset='utf-8'><title>PigShopTH</title></head><body><h1>PigShopTH PWA v2</h1><script src='app.js'></script></body></html>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f97316" />
+  <title>PigShopTH — บันทึกทุน/ขาย/ค่าใช้จ่าย</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>🐷 PigShopTH</h1>
+    <div class="date-row">
+      <input type="date" id="datePicker"/>
+      <button id="btnToday">วันนี้</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="cards">
+      <div class="card"><div class="label">ทุนหมูรวม</div><div class="value" id="valFund">฿0</div></div>
+      <div class="card"><div class="label">ยอดขายสะสม</div><div class="value" id="valSales">฿0</div></div>
+      <div class="card"><div class="label">ค่าใช้จ่ายรวม</div><div class="value" id="valExpense">฿0</div></div>
+      <div class="card"><div class="label">กำไรวันนี้</div><div class="value" id="valProfit">฿0</div></div>
+    </section>
+
+    <section class="bars">
+      <div class="bar">
+        <div class="bar-head"><span>ขายถึงทุนหมู</span><span id="remPig">ขาดอีก ฿0</span></div>
+        <div class="progress"><div id="progPig"></div></div>
+      </div>
+      <div class="bar">
+        <div class="bar-head"><span>ครอบคลุมทั้งหมด</span><span id="remAll">ขาดอีก ฿0</span></div>
+        <div class="progress"><div id="progAll"></div></div>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button class="action" id="btnAddSale">+ ขาย</button>
+      <button class="action" id="btnAddExpense">+ ค่าใช้จ่าย</button>
+      <button class="action" id="btnAddBatch">เพิ่มทุน (ระบุทีละตัว)</button>
+      <button class="action secondary" id="btnCloseDay">ปิดวัน / ส่งออก</button>
+    </section>
+
+    <section class="lists">
+      <h2>ชุด/ตัวหมู</h2>
+      <div id="batchList" class="list"></div>
+      <h2>ยอดขาย</h2>
+      <div id="saleList" class="list"></div>
+      <h2>ค่าใช้จ่าย</h2>
+      <div id="expList" class="list"></div>
+    </section>
+
+    <section class="history">
+      <h2>ประวัติ (เดือนนี้)</h2>
+      <div id="monthSummary" class="month-summary"></div>
+      <div id="historyList" class="list"></div>
+    </section>
+  </main>
+
+  <!-- dialogs are constructed by app.js -->
+  <script src="app.js"></script>
+</body>
+</html>
