@@ -1,10 +1,8 @@
 {
   "name": "PigShopTH",
   "short_name": "PigShopTH",
-  "lang": "th-TH",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0b0b0c",
-  "theme_color": "#f97316",
-  "icons": []
+  "background_color": "#111",
+  "theme_color": "#f97316"
 }
