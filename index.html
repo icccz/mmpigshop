@@ -4,78 +4,143 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#ffb3c1" />
-  <title>PigShopTH — ร้านหมู (น่ารัก)</title>
+  <title>PigShopTH v11 — ทุน/ขาย/ออเดอร์ + ลิ้นชักเงิน + กราฟสัปดาห์/เดือน + สรุปลึก</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="glass">
+  <header class="glass safetop">
     <div class="title">
       <span class="piglogo">🐷</span>
-      <h1>PigShopTH</h1>
+      <h1>PigShopTH v11</h1>
     </div>
     <div class="date-row">
       <input type="date" id="datePicker"/>
       <button id="btnToday" class="btn">วันนี้</button>
       <button id="btnDrawer" class="btn outline">ลิ้นชักเงิน</button>
+      <button id="btnSettings" class="btn outline">ตั้งค่า</button>
     </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="today">วันนี้</button>
+      <button class="tab" data-tab="summary">สรุป</button>
+      <button class="tab" data-tab="history">ประวัติ</button>
+      <button class="tab" data-tab="capital">ทุน/ลิ้นชัก</button>
+    </nav>
   </header>
 
   <main>
-    <section class="cards">
-      <div class="card pastel1">
-        <div class="label">ทุนหมูรวม</div>
-        <div class="value" id="valFund">฿0</div>
-      </div>
-      <div class="card pastel2">
-        <div class="label">ยอดขายสะสม</div>
-        <div class="value" id="valSales">฿0</div>
-      </div>
-      <div class="card pastel3">
-        <div class="label">ค่าใช้จ่ายรวม</div>
-        <div class="value" id="valExpense">฿0</div>
-      </div>
-      <div class="card pastel4">
-        <div class="label">กำไรวันนี้</div>
-        <div class="value" id="valProfit">฿0</div>
-      </div>
+    <!-- TAB: วันนี้ -->
+    <section data-tabpanel="today">
+      <section class="cards">
+        <div class="card pastel1">
+          <div class="label">ทุนรวมวันนี้</div>
+          <div class="value" id="valFund">฿0</div>
+        </div>
+        <div class="card pastel2">
+          <div class="label">ยอดขายสะสม</div>
+          <div class="value" id="valSales">฿0</div>
+          <div class="sub" id="valSalesSessions">เช้า: ฿0 | เย็น: ฿0 | อื่นๆ: ฿0</div>
+          <div class="sub" id="valSalesMethod">สด: ฿0 | สแกน: ฿0</div>
+        </div>
+        <div class="card pastel3">
+          <div class="label">ค่าใช้จ่ายรวม</div>
+          <div class="value" id="valExpense">฿0</div>
+        </div>
+        <div class="card pastel4">
+          <div class="label">กำไรวันนี้</div>
+          <div class="value" id="valProfit">฿0</div>
+        </div>
+        <div class="card pastel2 clickable" id="drawerCard">
+          <div class="label">เงินในลิ้นชัก (ทุนหมุนเวียน)</div>
+          <div class="value" id="valDrawer">฿0</div>
+          <div class="sub">แตะเพื่อแก้ไขจำนวน</div>
+        </div>
+      </section>
+
+      <section class="bars">
+        <div class="bar">
+          <div class="bar-head"><span>ขายถึงทุน (เฉพาะหมูตัว)</span><span id="remPig">ขาดอีก ฿0</span></div>
+          <div class="progress pig"><div id="progPig"></div></div>
+        </div>
+        <div id="pigBars"></div>
+        <div class="bar">
+          <div class="bar-head"><span>ครอบคลุมทั้งหมด (หมูตัว + ทุนเสริม + ค่าใช้จ่าย)</span><span id="remAll">ขาดอีก ฿0</span></div>
+          <div class="progress all"><div id="progAll"></div></div>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button class="action" id="btnAddSale">+ ขาย</button>
+        <button class="action" id="btnAddOrder">+ ออเดอร์</button>
+        <button class="action" id="btnAddExpense">+ ค่าใช้จ่าย</button>
+        <button class="action" id="btnAddFund">เพิ่มทุน</button>
+        <button class="action secondary" id="btnCloseDay">ปิดวัน / ส่งออก</button>
+      </section>
+
+      <section class="lists">
+        <h2>ทุนวันนี้</h2>
+        <div id="fundList" class="list"></div>
+        <h2>ออเดอร์</h2>
+        <div id="orderList" class="list"></div>
+        <h2>ยอดขาย</h2>
+        <div id="saleList" class="list"></div>
+        <h2>ค่าใช้จ่าย</h2>
+        <div id="expList" class="list"></div>
+      </section>
     </section>
 
-    <section class="bars">
-      <div class="bar">
-        <div class="bar-head"><span>ขายถึงทุนหมู</span><span id="remPig">ขาดอีก ฿0</span></div>
-        <div class="progress"><div id="progPig"></div></div>
+    <!-- TAB: สรุป -->
+    <section data-tabpanel="summary" class="hide">
+      <section class="cards">
+        <div class="card pastel2"><div class="label">ยอดขายรวม</div><div class="value" id="sumSales">฿0</div><div class="sub" id="sumSalesBySes">เช้า/เย็น/อื่นๆ</div></div>
+        <div class="card pastel1"><div class="label">ทุนหมูตัว</div><div class="value" id="sumFundPig">฿0</div></div>
+        <div class="card pastel3"><div class="label">ทุนเสริม</div><div class="value" id="sumFundBulk">฿0</div></div>
+        <div class="card pastel4"><div class="label">กำไร (คาด)</div><div class="value" id="sumProfit">฿0</div></div>
+      </section>
+      <section class="list">
+        <div id="drawerSummary" class="month-summary">เงินสดในลิ้นชัก: -</div>
+      </section>
+
+      <div class="chart-controls">
+        <button id="btnRangeWeek" class="mini active">สัปดาห์นี้</button>
+        <button id="btnRangeMonth" class="mini">เดือนนี้</button>
       </div>
-      <div class="bar">
-        <div class="bar-head"><span>ครอบคลุมทั้งหมด</span><span id="remAll">ขาดอีก ฿0</span></div>
-        <div class="progress"><div id="progAll"></div></div>
-      </div>
+
+      <section class="chart-grid">
+        <div class="card chart-card">
+          <div class="chart-title">ยอดขายรายวัน + ลิ้นชักเงิน (ตามช่วง)</div>
+          <svg id="chartRange" class="chart" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="chartRangeLegend" class="legend"></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-title">สัดส่วนยอดขายตามรอบ (ตามช่วง)</div>
+          <svg id="chartDonut" class="chart" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="chartDonutLegend" class="legend"></div>
+        </div>
+      </section>
     </section>
 
-    <section class="actions">
-      <button class="action" id="btnAddSale">+ ขาย</button>
-      <button class="action" id="btnAddExpense">+ ค่าใช้จ่าย</button>
-      <button class="action" id="btnAddBatch">เพิ่มทุน (ระบุทีละตัว)</button>
-      <button class="action secondary" id="btnCloseDay">ปิดวัน / ส่งออก</button>
-    </section>
-
-    <section class="lists">
-      <h2>ชุด/ตัวหมู</h2>
-      <div id="batchList" class="list"></div>
-      <h2>ยอดขาย</h2>
-      <div id="saleList" class="list"></div>
-      <h2>ค่าใช้จ่าย</h2>
-      <div id="expList" class="list"></div>
-    </section>
-
-    <section class="history">
+    <!-- TAB: ประวัติ -->
+    <section data-tabpanel="history" class="hide">
       <h2>ประวัติ (เดือนนี้)</h2>
       <div id="monthSummary" class="month-summary"></div>
       <div id="historyList" class="list"></div>
     </section>
+
+    <!-- TAB: ทุน/ลิ้นชัก -->
+    <section data-tabpanel="capital" class="hide">
+      <section class="cards">
+        <div class="card pastel2 clickable" id="drawerCard2">
+          <div class="label">เงินในลิ้นชัก (ทุนหมุนเวียน)</div>
+          <div class="value" id="valDrawer2">฿0</div>
+          <div class="sub">แตะเพื่อแก้ไขจำนวน</div>
+        </div>
+      </section>
+      <div class="month-summary" id="drawerExplain">ใช้เงินในลิ้นชักเป็นทุนซื้อหมูได้ — อัปเดตแล้วจะสะท้อนทุกหน้า</div>
+    </section>
   </main>
 
-  <!-- dialogs constructed by app.js -->
   <script src="app.js"></script>
 </body>
 </html>

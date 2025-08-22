@@ -1,9 +1,10 @@
+/* Minimal but nice styles from v10 + tweaks */
 *{box-sizing:border-box}
 :root{
   --bg:#101013; --text:#f7f7fb; --muted:#bfc3cf;
   --card:#161821; --line:#2a2e3a;
   --p1:#ffe4ec; --p2:#e7f7ff; --p3:#e8ffe7; --p4:#fff5e1;
-  --acc:#ff7aa8; --acc2:#7aa8ff;
+  --acc:#ff7aa8;
 }
 html,body{height:100%} body{margin:0;font-family:'SF Pro Text',system-ui,Segoe UI,Roboto,'TH Sarabun New',Arial,sans-serif;background:linear-gradient(180deg,#14161d, #0d0f14);color:var(--text)}
 header{position:sticky;top:0;z-index:10;padding:14px 16px;border-bottom:1px solid var(--line)}
@@ -20,6 +21,7 @@ main{padding:16px;display:flex;flex-direction:column;gap:16px}
 .card.pastel3{background:var(--p3);color:#1b4716}
 .card.pastel4{background:var(--p4);color:#6b4b0f}
 .card .label{opacity:.8;font-size:12px} .card .value{font-weight:900;font-size:22px}
+.card .sub{font-size:12px;opacity:.8;margin-top:4px}
 .bars .bar{margin:10px 0}
 .bar-head{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
 .progress{height:12px;background:#1a1d26;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
@@ -29,10 +31,10 @@ main{padding:16px;display:flex;flex-direction:column;gap:16px}
 h2{margin:8px 0}
 .list .row{padding:12px;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center}
 .row .meta{font-size:12px;color:var(--muted)}
-.row .btns{display:flex;gap:6px}
+.row .btns{display:flex;gap:6px;align-items:center}
 .row button.small{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#121620;color:#eee}
 .month-summary{padding:12px;border:1px dashed var(--line);border-radius:12px;margin-bottom:8px;color:var(--muted);background:#11151f}
-dialog{border:none;border-radius:16px;padding:16px;background:#161a24;color:#eef1ff;width:min(620px,94vw)}
+dialog{border:none;border-radius:16px;padding:16px;background:#161a24;color:#eef1ff;width:min(720px,94vw)}
 dialog::backdrop{background:rgba(0,0,0,.55)}
 .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
 menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin-top:8px}
@@ -42,4 +44,86 @@ menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin-top:8px}
 .chips button{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#111622;color:#eee}
 .pigcard{display:flex;align-items:center;gap:10px;padding:8px;border:1px dashed var(--line);border-radius:12px;background:#111520}
 .pigicon{font-size:24px;filter: drop-shadow(0 2px 6px rgba(255,122,168,.35))}
+.subtle{opacity:.85}
 .kbd{font-family:ui-monospace,Menlo,monospace;background:#0d1117;border:1px solid #222;border-radius:8px;padding:2px 6px}
+
+/* iOS-friendly tweaks */
+.safetop{ padding-top: calc(env(safe-area-inset-top) + 14px); }
+input, select { font-size: 16px; }
+.btn, .action { min-height: 44px; }
+
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tab{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:#151925;color:var(--text)}
+.tab.active{background:var(--acc);color:#1c0f13;font-weight:900}
+.hide{display:none}
+
+/* Order styles */
+.order-item{display:grid;grid-template-columns:1fr 90px 110px auto;gap:8px;align-items:center}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:12px;margin-left:6px}
+.tag{font-size:12px;opacity:.9;margin-left:8px;padding:2px 8px;border:1px solid var(--line);border-radius:999px}
+
+/* Fund dialog tabs */
+.tabline{display:flex;gap:8px;margin:6px 0}
+.tabline .mini{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#151925;color:#fff}
+.tabline .mini.active{background:var(--acc);color:#1c0f13;font-weight:900}
+
+/* Expense category badge */
+.cat-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;margin-left:6px;border:1px solid var(--line)}
+.cat-0{background:#2a2f45;color:#dfe6ff}
+.cat-1{background:#2a3f36;color:#dbffea}
+.cat-2{background:#3e2b3d;color:#ffdff7}
+.cat-3{background:#423222;color:#ffe9d1}
+.cat-4{background:#2f2f2f;color:#f0f0f0}
+.cat-5{background:#2e3942;color:#dbf2ff}
+.cat-6{background:#2c3a2a;color:#e6ffe1}
+.cat-7{background:#3b2b2b;color:#ffe2e2}
+
+/* Charts (Summary) */
+.chart-controls{display:flex;gap:8px;margin:2px 0 4px}
+.chart-controls .mini{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#151925;color:#fff}
+.chart-controls .mini.active{background:var(--acc);color:#1c0f13;font-weight:900}
+.chart-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px}
+@media(min-width:900px){.chart-grid{grid-template-columns:2fr 1fr}}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+.chart-title{font-weight:800;margin-bottom:8px;color:#e7e9f7}
+.chart{width:100%;height:auto;display:block;background:#10141e;border-radius:12px;border:1px solid var(--line)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:12px}
+.legend .item{display:flex;align-items:center;gap:6px}
+.legend .swatch{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.svg-grid line{stroke:#2a2e3a;stroke-width:1;opacity:.7}
+.svg-axis text{fill:#bfc3cf;font-size:11px}
+.bar-rect{fill:url(#gradBar);opacity:.95}
+.line-path{fill:none;stroke:#ffb3c1;stroke-width:2.2}
+.drawer-line{fill:none;stroke:#8df0ff;stroke-width:2.2;stroke-dasharray:4 4}
+.dot{fill:#ffd1dc;stroke:#633;stroke-width:.6}
+.break-dot{fill:#7affb6;stroke:#0c3;stroke-width:1}
+
+/* Pretty tones for progress bars */
+.progress.pig > div{ background:linear-gradient(90deg,#7ad1ff,#2b6d9a); }
+.progress.all > div{ background:linear-gradient(90deg,#a7f3d0,#34d399); }
+.progress.pigitem > div{ background:linear-gradient(90deg,#fcd34d,#f59e0b); }
+
+/* Drawer layout fix */
+.drawer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.drawer-grid .cell {
+  padding: 6px 4px;
+  font-size: 14px;
+}
+.drawer-grid .hdr {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* Donut chart slices colors */
+.slice0 { fill: #9cc9ff; }
+.slice1 { fill: #ffd1a8; }
+.slice2 { fill: #c8ffa8; }
+.slice3 { fill: #e7b3ff; }
+.slice4 { fill: #ffa8c6; }
+
