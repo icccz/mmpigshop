@@ -3,26 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f97316" />
-  <title>PigShopTH — บันทึกทุน/ขาย/ค่าใช้จ่าย</title>
+  <meta name="theme-color" content="#ffb3c1" />
+  <title>PigShopTH — ร้านหมู (น่ารัก)</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>🐷 PigShopTH</h1>
+  <header class="glass">
+    <div class="title">
+      <span class="piglogo">🐷</span>
+      <h1>PigShopTH</h1>
+    </div>
     <div class="date-row">
       <input type="date" id="datePicker"/>
-      <button id="btnToday">วันนี้</button>
+      <button id="btnToday" class="btn">วันนี้</button>
+      <button id="btnDrawer" class="btn outline">ลิ้นชักเงิน</button>
     </div>
   </header>
 
   <main>
     <section class="cards">
-      <div class="card"><div class="label">ทุนหมูรวม</div><div class="value" id="valFund">฿0</div></div>
-      <div class="card"><div class="label">ยอดขายสะสม</div><div class="value" id="valSales">฿0</div></div>
-      <div class="card"><div class="label">ค่าใช้จ่ายรวม</div><div class="value" id="valExpense">฿0</div></div>
-      <div class="card"><div class="label">กำไรวันนี้</div><div class="value" id="valProfit">฿0</div></div>
+      <div class="card pastel1">
+        <div class="label">ทุนหมูรวม</div>
+        <div class="value" id="valFund">฿0</div>
+      </div>
+      <div class="card pastel2">
+        <div class="label">ยอดขายสะสม</div>
+        <div class="value" id="valSales">฿0</div>
+      </div>
+      <div class="card pastel3">
+        <div class="label">ค่าใช้จ่ายรวม</div>
+        <div class="value" id="valExpense">฿0</div>
+      </div>
+      <div class="card pastel4">
+        <div class="label">กำไรวันนี้</div>
+        <div class="value" id="valProfit">฿0</div>
+      </div>
     </section>
 
     <section class="bars">
@@ -59,7 +75,7 @@
     </section>
   </main>
 
-  <!-- dialogs are constructed by app.js -->
+  <!-- dialogs constructed by app.js -->
   <script src="app.js"></script>
 </body>
 </html>
