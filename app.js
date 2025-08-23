@@ -1,4 +1,4 @@
-
+// PigShopTH v11 — Summary Deep Dive, trends, expense pie, supplier stats, badges
 // PigShopTH v11 — Summary Deep Dive, trends, expense pie, supplier stats, badges
 const THB = new Intl.NumberFormat('th-TH',{style:'currency',currency:'THB',maximumFractionDigits:0});
 const SKEY='pigshop.v10.days'; const SETKEY='pigshop.v10.settings';
@@ -173,7 +173,6 @@ const dlgFund=document.createElement('dialog');dlgFund.innerHTML=`<h3>เพิ�
 <div class="grid">
   <div class="tabline"><button class="mini active" data-ftab="pig">หมู</button><button class="mini" data-ftab="bulk">ทุนเสริม</button></div>
   <div id="fundPigPane">
-    <label>ตั้งชื่อชุด</label><input id="fundName" type="text" placeholder="เช่น ชุดเช้า">
     <label>ผู้ขาย</label><input list="supList" id="fundSup" type="text" placeholder="เช่น ลุงเอก">
     <datalist id="supList"></datalist>
     <div id="fundDynamicPig"></div>
@@ -264,8 +263,8 @@ dlgSale.querySelector('#saleSave').onclick=()=>{
 
 // Orders
 function openOrder(){
-  dlgOrder.querySelector('[data-otab="items"]').classList.add('active');
-  dlgOrder.querySelector('[data-otab="status"]').classList.remove('active');
+  dlgOrder.querySelector('[data-otab=\"items\"]').classList.add('active');
+  dlgOrder.querySelector('[data-otab=\"status\"]').classList.remove('active');
   dlgOrder.querySelector('#ordItemsPane').classList.remove('hide');
   dlgOrder.querySelector('#ordStatusPane').classList.add('hide');
   dlgOrder.querySelector('#ordCus').value='';
@@ -358,11 +357,11 @@ dlgExpense.querySelector('#expSave').onclick=()=>{
 function openFund(){
   const dl=dlgFund.querySelector('#supList'); dl.innerHTML='';
   (state.settings.suppliers||[]).forEach(s=>{ const o=document.createElement('option'); o.value=s; dl.appendChild(o); });
-  dlgFund.querySelector('[data-ftab="pig"]').classList.add('active');
-  dlgFund.querySelector('[data-ftab="bulk"]').classList.remove('active');
+  dlgFund.querySelector('[data-ftab=\"pig\"]').classList.add('active');
+  dlgFund.querySelector('[data-ftab=\"bulk\"]').classList.remove('active');
   dlgFund.querySelector('#fundPigPane').classList.remove('hide');
   dlgFund.querySelector('#fundBulkPane').classList.add('hide');
-  dlgFund.querySelector('#fundName').value='';
+  
   dlgFund.querySelector('#fundSup').value=state.settings.lastSupplier||'';
   const host=dlgFund.querySelector('#fundDynamicPig'); host.innerHTML=''; addFundRow();
   dlgFund.showModal();
@@ -943,7 +942,7 @@ function renderSummaryDeep(){
   $('#sdFundRatio').textContent = `หมูตัว ${Math.round(agg.fundRatioPig*100)}% / ทุนเสริม ${Math.round((1-agg.fundRatioPig)*100)}%`;
   $('#sdPerKg').textContent = agg.salesPerKg>0 ? `${THB.format(Math.round(agg.salesPerKg))} / กก.` : '-';
   const tSales = Math.round(trend.salesPct*100), tProfit=Math.round(trend.profitPct*100), tExp=Math.round(trend.expensePct*100);
-  $('#sdTrend').textContent = `ขาย ${tSales>=0?'📈':'📉'} ${Math.abs(tSales)}% | กำไร ${tProfit>=0?'📈':'📉'} ${Math.abs(tProfit)}% | ค่าใช้จ่าย ${tExp>=0?'📈':'📉'} ${Math.abs(tExp)}%`;
+  $('#sdTrend').textContent = `ขาย ${tSales>=0?'📈':'📉'} ${Math.abs(tSales)}% | กำไร ${tProfit>=0?'📈':'📉'} ${Math.abs(tProfit)}% | ค่าใช้จ่าย ${Math.abs(tExp)}%`;
   $('#sdNetCash').textContent = fmt(agg.drawerLast + agg.profit);
   $('#sdProfitSplit').textContent = `ออเดอร์ ${fmt(agg.salesFromOrders)} | หน้าร้าน ${fmt(agg.salesFromStore)}`;
   $('#sdSupplier').textContent = agg.topSupplier ? `${agg.topSupplier[0]} รวม ${fmt(agg.topSupplier[1])}` : '-';

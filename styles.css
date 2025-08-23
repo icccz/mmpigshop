@@ -127,3 +127,88 @@ input, select { font-size: 16px; }
 .slice3 { fill: #e7b3ff; }
 .slice4 { fill: #ffa8c6; }
 
+
+/* === Responsive fixes (mobile) === */
+dialog {
+  max-width: 100%;
+  width: 95vw;
+}
+.grid input, .grid select, .grid label {
+  max-width: 100%;
+}
+.list .row { 
+  flex-wrap: wrap;
+}
+.order-item {
+  grid-template-columns: 1fr 80px 100px auto;
+}
+@media(max-width: 640px){
+  .cards { grid-template-columns: 1fr; }
+  .actions { grid-template-columns: 1fr 1fr; }
+  .order-item { grid-template-columns: 1fr 1fr; }
+  .card .value { font-size: 20px; }
+  .date-row { flex-wrap: wrap; }
+  .chart { width: 100%; height: auto; }
+  .drawer-grid { grid-template-columns: 1fr 1fr 1fr; }
+  header .title h1 { font-size: 18px; }
+}
+@media(max-width: 420px){
+  .actions { grid-template-columns: 1fr; }
+  .order-item { grid-template-columns: 1fr; }
+  .order-item .btns { justify-content: flex-start; }
+}
+
+
+/* === Action buttons redesign & responsiveness === */
+.actions{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+.action{
+  padding:16px 18px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:#182132;
+  color:#fff;
+  font-weight:800;
+  letter-spacing:.2px;
+  min-height:56px;
+  width:100%;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+}
+/* Color each primary action */
+.actions .action:nth-child(1){ /* + ขาย */
+  background:linear-gradient(180deg,#3dd1ff,#1a7bb8);
+  border:0;
+  color:#081016;
+}
+.actions .action:nth-child(2){ /* + ออเดอร์ */
+  background:linear-gradient(180deg,#b58cff,#6b65ff);
+  border:0;
+  color:#0f0c22;
+}
+.actions .action:nth-child(3){ /* + ค่าใช้จ่าย */
+  background:linear-gradient(180deg,#ffd37a,#ff9f43);
+  border:0;
+  color:#3a1a00;
+}
+.actions .action:nth-child(4){ /* เพิ่มทุน */
+  background:linear-gradient(180deg,#7affb6,#34d399);
+  border:0;
+  color:#052014;
+}
+.actions .action:nth-child(5){ /* ปิดวัน / ส่งออก */
+  background:linear-gradient(180deg,#2b3242,#1a1f2b);
+  color:#e7ebff;
+}
+.action:active{ transform: translateY(1px); }
+
+/* Bigger top .btn too */
+.btn{ padding:10px 14px; border-radius:16px; font-weight:800; min-height:46px; }
+
+/* Prevent overflow on small screens */
+.actions .action, .btn, input, select { max-width:100%; }
+
+/* Larger small buttons for touch */
+.row button.small{ min-height:40px; padding:8px 12px; border-radius:12px; }
