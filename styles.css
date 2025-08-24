@@ -59,8 +59,14 @@ input, select { font-size: 16px; }
 .hide{display:none}
 
 /* Order styles */
-.order-item{display:grid;grid-template-columns:1fr 90px 110px auto;gap:8px;align-items:center}
+.order-item{display:grid;grid-template-columns:1fr 80px 100px 110px auto;gap:8px;align-items:center}
 .badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:12px;margin-left:6px}
+/* Status chips */
+.badge.sent,.badge.paid{background:transparent;color:var(--muted);border-color:var(--line)}
+.badge.sent-active,.badge.paid-active{background:#2ecc71;color:#0b1a10;border-color:transparent;font-weight:800}
+/* Row highlight when both done */
+.row.done{outline:1px solid rgba(46,204,113,.35);box-shadow:0 0 0 2px rgba(46,204,113,.15) inset;border-radius:12px}
+
 .tag{font-size:12px;opacity:.9;margin-left:8px;padding:2px 8px;border:1px solid var(--line);border-radius:999px}
 
 /* Fund dialog tabs */
@@ -212,3 +218,7 @@ dialog {
 
 /* Larger small buttons for touch */
 .row button.small{ min-height:40px; padding:8px 12px; border-radius:12px; }
+
+/* --- Sales 'checked' status --- */
+.badge.checked{background:transparent;color:var(--muted);border-color:var(--line)}
+.badge.checked-active{background:#2ecc71;color:#0b1a10;border-color:transparent;font-weight:800}

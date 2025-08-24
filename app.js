@@ -126,6 +126,8 @@ tabs.forEach(t=>t.addEventListener('click',()=>{
 const dlgSale=document.createElement('dialog');dlgSale.innerHTML=`<h3>เพิ่มยอดขาย</h3>
 <div class="grid">
   <label>จำนวน (บาท)</label><input id="saleAmount" type="number" inputmode="numeric" min="0" step="1">
+  <label>เงินทอน (บาท)</label><input id="saleChange" type="number" inputmode="numeric" min="0" step="1">
+  <div class="subtle" id="saleNetTxt">สุทธิ: ฿0</div>
   <label>วิธีชำระ</label>
   <select id="saleMethod">
     <option value="cash">เงินสด</option>
@@ -247,17 +249,31 @@ function openSale(){
   const sel=dlgSale.querySelector('#saleSession');
   sel.innerHTML=''; (state.settings.saleSessions||DEFAULT_SESSIONS).forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
   const wrap=dlgSale.querySelector('#quickChips'); wrap.innerHTML='';
-  (state.settings.quickSale||DEFAULT_QUICK).forEach(n=>{ const b=document.createElement('button'); b.textContent=n; b.onclick=()=>dlgSale.querySelector('#saleAmount').value=String(n); wrap.appendChild(b); });
+  (state.settings.quickSale||DEFAULT_QUICK).forEach(n=>{ const b=document.createElement('button'); b.textContent=n; b.onclick=()=>{dlgSale.querySelector('#saleAmount').value=String(n); updateSaleNet();}; wrap.appendChild(b); });
+  // Update net preview on input
+  dlgSale.addEventListener('input', (e)=>{
+    if(e.target && (e.target.id==='saleAmount' || e.target.id==='saleChange')) updateSaleNet();
+  }, {once:false});
+  updateSaleNet();
   dlgSale.showModal();
 }
 dlgSale.querySelector('#saleCancel').onclick=()=>dlgSale.close();
+function updateSaleNet(){
+  const amount = Math.max(0, Math.round(Number(dlgSale.querySelector('#saleAmount').value||0)));
+  const change = Math.max(0, Math.round(Number(dlgSale.querySelector('#saleChange').value||0)));
+  const net = Math.max(0, amount - change);
+  const el = dlgSale.querySelector('#saleNetTxt');
+  if(el){ el.textContent = 'สุทธิ: ' + THB.format(net); }
+}
 dlgSale.querySelector('#saleSave').onclick=()=>{
-  const amount=max0(dlgSale.querySelector('#saleAmount').value||0);
+  const gross=max0(dlgSale.querySelector('#saleAmount').value||0);
+  const change=max0(dlgSale.querySelector('#saleChange').value||0);
+  const amount=Math.max(0, gross - change);
   const session=dlgSale.querySelector('#saleSession').value||'อื่นๆ';
   const method=dlgSale.querySelector('#saleMethod').value||'cash';
   const note=dlgSale.querySelector('#saleNote').value||'';
   if(amount<=0) return;
-  const d=day(); d.sales.push({id:crypto.randomUUID(),amount,session,method,note,createdAt:new Date().toISOString()});
+  const d=day(); d.sales.push({id:crypto.randomUUID(),amount,gross,change,session,method,note,checked:false,createdAt:new Date().toISOString()});
   recalc(d); save(); renderAll(); dlgSale.close();
 };
 
@@ -291,6 +307,7 @@ function addOrderItem(){
   row.innerHTML=`<input class="p" type="text" placeholder="ส่วนไหน เช่น สันคอ/หมูบด">
     <input class="w" type="number" inputmode="decimal" min="0" step="0.1" placeholder="กก.">
     <input class="r" type="number" inputmode="numeric" min="0" step="1" placeholder="บาท/กก.">
+    <input class="t" type="number" inputmode="numeric" min="0" step="1" placeholder="บาท">
     <div class="btns"><span class="meta subtotal">฿0</span> <button class="small del">ลบ</button></div>`;
   row.querySelector('.del').onclick=()=>{ row.remove(); updateOrderTotal(); };
   ['input','change'].forEach(ev=>row.addEventListener(ev,updateOrderTotal));
@@ -302,8 +319,15 @@ function updateOrderTotal(){
   let total=0;
   rows.forEach(r=>{
     const kg=Number(r.querySelector('.w').value||0);
-    const rate=Number(r.querySelector('.r').value||0);
-    const sub=max0(kg*rate);
+    let rate=Number(r.querySelector('.r').value||0);
+    let tot=Number(r.querySelector('.t').value||0);
+    if(tot>0 && kg>0){
+      // Auto-calc average rate per kg from total
+      const avg = Math.round(tot / kg);
+      r.querySelector('.r').value = String(avg);
+      rate = avg;
+    }
+    const sub = tot>0 ? max0(tot) : max0(kg*rate);
     r.querySelector('.subtotal').textContent=fmt(sub);
     total+=sub;
   });
@@ -312,9 +336,9 @@ function updateOrderTotal(){
 dlgOrder.querySelector('#ordCancel').onclick=()=>dlgOrder.close();
 dlgOrder.querySelector('#ordSave').onclick=()=>{
   const d=day();
-  const items=[...dlgOrder.querySelectorAll('.order-item')].map(r=>({part:r.querySelector('.p').value.trim()||'ไม่ระบุ',kg:Number(r.querySelector('.w').value||0),rate:Number(r.querySelector('.r').value||0)})).filter(i=>i.kg>0 && i.rate>0);
+  const items=[...dlgOrder.querySelectorAll('.order-item')].map(r=>({part:r.querySelector('.p').value.trim()||'ไม่ระบุ',kg:Number(r.querySelector('.w').value||0),rate:Number(r.querySelector('.r').value||0), total: Number(r.querySelector('.t').value||0)})).filter(i=> (i.kg>0 && (i.rate>0 || i.total>0)) || i.total>0);
   if(items.length===0) return;
-  const total=items.reduce((a,b)=>a+Math.round(b.kg*b.rate),0);
+  const total=items.reduce((a,b)=>a + (b.total>0 ? Math.round(b.total) : Math.round(b.kg*b.rate)),0);
   d.orders.push({id:crypto.randomUUID(),customer:dlgOrder.querySelector('#ordCus').value.trim()||'ลูกค้า',items,total, sent:dlgOrder.querySelector('#ordSent').checked, paid:dlgOrder.querySelector('#ordPaid').checked, note:dlgOrder.querySelector('#ordNote').value||'', createdAt:new Date().toISOString()});
   save(); renderAll(); dlgOrder.close();
 };
@@ -606,7 +630,7 @@ function renderLists(){
   // Orders
   orderList.innerHTML='';
   (d.orders||[]).forEach(o=>{
-    const totalItems = o.items.map(it=>`${it.part} ${it.kg}กก. x ${fmt(it.rate)}`).join(' • ');
+    const totalItems = o.items.map(it=> (it.total&&it.total>0 && it.kg>0) ? `${it.part} ${it.kg}กก. = ${fmt(it.total)}` : `${it.part} ${it.kg}กก. x ${fmt(it.rate)}`).join(' • ');
     const row=document.createElement('div'); row.className='row type-fund';
     row.innerHTML=`<div><div><b>🧾 ${o.customer}</b><span class="tag">${new Date(o.createdAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</span></div>
       <div class="meta">${totalItems}</div>
@@ -630,10 +654,11 @@ function renderLists(){
   // Sales
   saleList.innerHTML='';
   (d.sales||[]).forEach(s=>{
-    const row=document.createElement('div'); row.className='row type-fund';
-    const methodBadge = s.method==='scan' ? '<span class="badge">สแกน</span>' : '<span class="badge">สด</span>';
-    row.innerHTML=`<div><div>${s.note||'ขาย'} ${methodBadge} <span class="meta">• ${s.session}</span></div><div class="meta">${new Date(s.createdAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div></div>
+    const row=document.createElement('div'); row.className='row type-fund'+(s.checked?' done':'');
+    const methodBadge = s.method==='scan' ? '<span class="badge">สแกน</span>' : '<span class="badge">สด</span>'; const checkBadge = `<span class="badge ${s.checked?'checked-active':'checked'}">นับแล้ว</span>`;
+    row.innerHTML=`<div><div>${s.note||'ขาย'} ${methodBadge} ${checkBadge} <span class="meta">• ${s.session}</span></div><div class="meta">${new Date(s.createdAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div></div>
       <div class="btns"><div class="meta">${fmt(s.amount)}</div> <button class="small del">ลบ</button></div>`;
+    row.querySelector('.mark-checked').onclick=()=>{ s.checked=!s.checked; save(); renderLists(); };
     row.querySelector('.del').onclick=()=>{ d.sales=d.sales.filter(x=>x.id!==s.id); recalc(d); save(); renderAll(); };
     saleList.appendChild(row);
   });
