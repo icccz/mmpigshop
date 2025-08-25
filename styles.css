@@ -222,3 +222,10 @@ dialog {
 /* --- Sales 'checked' status --- */
 .badge.checked{background:transparent;color:var(--muted);border-color:var(--line)}
 .badge.checked-active{background:#2ecc71;color:#0b1a10;border-color:transparent;font-weight:800}
+
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(10px);
+background:#0b1220; color:#e9eef6; border:1px solid #2c3546; padding:10px 14px; border-radius:999px;
+box-shadow:0 8px 24px rgba(0,0,0,.4); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:9999; font-weight:600;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}

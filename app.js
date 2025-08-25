@@ -40,7 +40,7 @@ function getPrevDay(ymd){
 function day(){
   let d=state.days.find(x=>x.date===state.date);
   if(!d){
-    d={id:crypto.randomUUID(),date:state.date,funds:[],sales:[],expenses:[],orders:[],drawer:initDrawer(),notes:'',
+    d={id:crypto.randomUUID(),date:state.date,funds:[],sales:[],expenses:[],orders:[],drawer:initDrawer(), drawerAdj:0,notes:'',
        breakEvenPigAt:null,breakEvenAllAt:null,pigOriginDate:null,pigBreakevenDate:null};
     const prev=getPrevDay(state.date);
     if(prev){
@@ -59,17 +59,57 @@ function day(){
           supplier:'',
           pigs:[{id:crypto.randomUUID(),weightKg:0,costTHB:remain}],
           originDate: origin,
-          isCarry:true
+          isCarry:true,
+          createdAt:new Date().toISOString()
         });
       }
     }
     state.days.push(d);
   }
+  ensureCarryOver(d, state.date);
   return d;
 }
+
+function ensureCarryOver(d, ymd){
+  const prev = getPrevDay(ymd);
+  if(!prev) return;
+  const prevPig = getPigFund(prev);
+  const prevSales = sum(prev.sales,'amount');
+  const remain = max0(prevPig - prevSales);
+  const origin = prev.pigOriginDate || prev.date;
+
+  // Remove any old carry items first (avoid duplicates)
+  d.funds = (d.funds||[]).filter(f => !(f.isCarry && f.type==='pig' && f.categoryKey==='carry'));
+
+  if(remain > 0){
+    d.pigOriginDate = origin;
+    d.funds.push({
+      id: crypto.randomUUID(),
+      type: 'pig',
+      categoryKey: 'carry',
+      name: 'ยกมาทุนหมู',
+      supplier: '',
+      pigs: [{ id: crypto.randomUUID(), weightKg: 0, costTHB: remain }],
+      originDate: origin,
+      isCarry: true,
+      createdAt: new Date().toISOString()
+    });
+  }
+}
+
 function initDrawer(){return {b1000:0,b500:0,b100:0,b50:0,b20:0,c10:0,c5:0,c2:0,c1:0}}
 function sum(arr,field){return arr.reduce((a,b)=>a+Number(b[field]||0),0)}
-function drawerTotal(d){ d=d||day(); const x=d.drawer||initDrawer(); return x.b1000*1000+x.b500*500+x.b100*100+x.b50*50+x.b20*20+x.c10*10+x.c5*5+x.c2*2+x.c1*1; }
+
+function toast(msg, dur=1400){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg;
+  t.classList.add('show'); t.classList.remove('hide');
+  clearTimeout(t._to||0);
+  t._to=setTimeout(()=>{ t.classList.remove('show'); t.classList.add('hide'); }, dur);
+}
+
+function drawerTotal(d){ d=d||day(); const x=d.drawer||initDrawer(); return x.b1000*1000+x.b500*500+x.b100*100+x.b50*50+x.b20*20+x.c10*10+x.c5*5+x.c2*2+x.c1*1 + (d.drawerAdj||0); }
 function fmt(n){return THB.format(max0(n))}
 function setProg(el,p){if(!el) return; el.style.width=Math.max(0,Math.min(100,Math.round((p||0)*100)))+'%'}
 
@@ -171,14 +211,14 @@ const dlgExpense=document.createElement('dialog');dlgExpense.innerHTML=`<h3>เ�
 <menu><button id="expCancel">ยกเลิก</button><button id="expSave" class="primary">บันทึก</button></menu>`;document.body.appendChild(dlgExpense);
 
 // Fund
-const dlgFund=document.createElement('dialog');dlgFund.innerHTML=`<h3>เพิ่มทุน</h3>
+const dlgFund=document.createElement('dialog');dlgFund.innerHTML=`<h3>เพิ่มทุน <span id="fundDrawerNow" class="tag">ลิ้นชัก: ฿0</span></h3>
 <div class="grid">
   <div class="tabline"><button class="mini active" data-ftab="pig">หมู</button><button class="mini" data-ftab="bulk">ทุนเสริม</button></div>
   <div id="fundPigPane">
     <label>ผู้ขาย</label><input list="supList" id="fundSup" type="text" placeholder="เช่น ลุงเอก">
     <datalist id="supList"></datalist>
     <div id="fundDynamicPig"></div>
-    <div class="chips"><button id="fundPigAddRow" class="secondary">+ เพิ่มตัว</button></div>
+    <div class="chips"><button id="fundPigAddRow" class="secondary">+ เพิ่มตัว</button><label class="subtle"><input id="fundUseDrawer" type="checkbox"> หักจากลิ้นชัก</label></div>
   </div>
   <div id="fundBulkPane" class="hide">
     <label>ชื่อทุน (พิมพ์สั้นๆ)</label><input id="bulkName" type="text" placeholder="เช่น หมูบด 5 โล">
@@ -340,7 +380,7 @@ dlgOrder.querySelector('#ordSave').onclick=()=>{
   if(items.length===0) return;
   const total=items.reduce((a,b)=>a + (b.total>0 ? Math.round(b.total) : Math.round(b.kg*b.rate)),0);
   d.orders.push({id:crypto.randomUUID(),customer:dlgOrder.querySelector('#ordCus').value.trim()||'ลูกค้า',items,total, sent:dlgOrder.querySelector('#ordSent').checked, paid:dlgOrder.querySelector('#ordPaid').checked, note:dlgOrder.querySelector('#ordNote').value||'', createdAt:new Date().toISOString()});
-  save(); renderAll(); dlgOrder.close();
+  save(); renderAll(); dlgOrder.close(); toast('บันทึกแล้ว');
 };
 
 // Expense
@@ -374,7 +414,7 @@ dlgExpense.querySelector('#expSave').onclick=()=>{
   if(category && !state.settings.expenseCats.includes(category)){
     state.settings.expenseCats.push(category);
   }
-  recalc(d); save(); renderAll(); dlgExpense.close();
+  recalc(d); save(); renderAll(); dlgExpense.close(); toast('บันทึกแล้ว');
 };
 
 // Fund
@@ -388,6 +428,7 @@ function openFund(){
   
   dlgFund.querySelector('#fundSup').value=state.settings.lastSupplier||'';
   const host=dlgFund.querySelector('#fundDynamicPig'); host.innerHTML=''; addFundRow();
+  const bal = drawerTotal(); dlgFund.querySelector('#fundDrawerNow').textContent = `ลิ้นชัก: ${fmt(bal)}`;
   dlgFund.showModal();
 }
 dlgFund.addEventListener('click',e=>{
@@ -395,7 +436,7 @@ dlgFund.addEventListener('click',e=>{
     dlgFund.querySelectorAll('[data-ftab]').forEach(b=>b.classList.remove('active'));
     e.target.classList.add('active');
     const k=e.target.getAttribute('data-ftab');
-    dlgFund.querySelector('#fundPigPane').classList.toggle('hide',k!=='pig');
+    dlgFund.querySelector('#fundPigPane').classList.toggle('hide',k!=='pig'); const bal = drawerTotal(); dlgFund.querySelector('#fundDrawerNow').textContent = `ลิ้นชัก: ${fmt(bal)}`;
     dlgFund.querySelector('#fundBulkPane').classList.toggle('hide',k!=='bulk');
   }
 });
@@ -419,12 +460,15 @@ dlgFund.querySelector('#fundSave').onclick=()=>{
   const d=day();
   const activeTab = dlgFund.querySelector('[data-ftab].active').getAttribute('data-ftab');
   if(activeTab==='pig'){
-    const name=dlgFund.querySelector('#fundName').value || 'หมู';
+    const name=(dlgFund.querySelector('#fundName')?.value || 'หมู');
     const supplier=dlgFund.querySelector('#fundSup').value.trim();
     const host=dlgFund.querySelector('#fundDynamicPig');
     const pigs=[...host.querySelectorAll('.pigcard')].map(c=>({ id:crypto.randomUUID(), weightKg:Number(c.querySelector('.w').value||0), costTHB:max0(c.querySelector('.c').value||0) })).filter(p=>p.weightKg>0 && p.costTHB>0);
     if(pigs.length===0) return;
-    d.funds.push({id:crypto.randomUUID(), type:'pig', categoryKey:'pig', name, supplier, pigs, originDate: d.pigOriginDate || d.date});
+    const useDrawer = !!dlgFund.querySelector('#fundUseDrawer')?.checked;
+    const totalCost = pigs.reduce((a,p)=>a+Number(p.costTHB||0),0);
+    if(useDrawer){ d.drawerAdj = (d.drawerAdj||0) - totalCost; }
+    d.funds.push({id:crypto.randomUUID(), type:'pig', categoryKey:'pig', name, supplier, pigs, originDate: d.pigOriginDate || d.date, paidFromDrawer: useDrawer, createdAt:new Date().toISOString()});
     if(!d.pigOriginDate) d.pigOriginDate = d.date;
     if(supplier){
       if(!state.settings.suppliers.includes(supplier)) state.settings.suppliers.push(supplier);
@@ -438,9 +482,9 @@ dlgFund.querySelector('#fundSave').onclick=()=>{
     const name=dlgFund.querySelector('#bulkName').value.trim()||'ทุนเสริม';
     const cost=max0(dlgFund.querySelector('#bulkCost').value||0);
     if(cost<=0) return;
-    d.funds.push({id:crypto.randomUUID(), type:'bulk', categoryKey:'supp', name, supplier:'', weightKg:0, costTHB:cost});
+    d.funds.push({id:crypto.randomUUID(), type:'bulk', categoryKey:'supp', name, supplier:'', weightKg:0, costTHB:cost, createdAt:new Date().toISOString()});
   }
-  recalc(d); save(); renderAll(); dlgFund.close();
+  recalc(d); save(); renderAll(); dlgFund.close(); toast('บันทึกแล้ว');
 };
 
 // Drawer
@@ -457,6 +501,7 @@ function openDrawer(){
   });
   host.appendChild(wrap);
   const result = dlgDrawer.querySelector('#drawerResult'); result.className='drawer-total';
+  dlgDrawer.dataset.adj = String(d.drawerAdj||0);
   renderDrawerTotals();
   dlgDrawer.showModal();
 }
@@ -469,14 +514,15 @@ function renderDrawerTotals(){
     const sumVal=v*value; grand+=sumVal; if(v>0){ text.push(`฿${value} × ${v} = ${fmt(sumVal)}`); }
     const sub=dlgDrawer.querySelector(`[data-sub="${key}"]`); if(sub) sub.textContent=fmt(sumVal);
   });
-  dlgDrawer.querySelector('#drawerResult').textContent = (text.length?text.join(' | '):'ยังไม่มีรายการ') + `  ➜ รวมทั้งสิ้น: ${fmt(grand)}`;
+  const adj = Number(dlgDrawer.dataset.adj||0);
+  dlgDrawer.querySelector('#drawerResult').textContent = (text.length?text.join(' | '):'ยังไม่มีรายการ') + `  ➜ รวมทั้งสิ้น: ${fmt(grand + adj)}${adj? ' (ปรับ: ' + fmt(adj) + ')':''}`;
 }
 dlgDrawer.addEventListener('input', (e)=>{ if(e.target.matches('.drawer-qty')) renderDrawerTotals(); });
 dlgDrawer.querySelector('#drawerCancel').onclick=()=>dlgDrawer.close();
 dlgDrawer.querySelector('#drawerSave').onclick=()=>{
   const d=day(); d.drawer = d.drawer || initDrawer();
   dlgDrawer.querySelectorAll('#drawerInputs input').forEach(inp=>{ d.drawer[inp.dataset.k]=max0(inp.value||0) });
-  save(); dlgDrawer.close();
+  d.drawerUpdatedAt = new Date().toISOString(); save(); dlgDrawer.close(); renderAll(); toast('บันทึกแล้ว'); 
 };
 
 // Close/Export
@@ -505,12 +551,13 @@ dlgClose.querySelector('#btnExportCSV').onclick=()=>{
 dlgClose.querySelector('#btnAppendSheets').onclick=async()=>{
   const url=(dlgClose.querySelector('#sheetsUrl').value||'').trim(); state.settings.sheetsUrl=url; save();
   const d=day(); d.notes=dlgClose.querySelector('#closeNote').value||'';
+  toast('กำลังส่ง...'); dlgClose.close();
   const fp=getPigFund(d), fb=getBulkFund(d); const te=sum(d.expenses,'amount'); const ts=sum(d.sales,'amount'); const profit=Math.max(0,ts-fp-fb-te);
   const payload={date:d.date, fundPig:fp, fundBulk:fb, totalExpense:te, totalSales:ts, profit, orders:(d.orders||[]).length,
     breakEvenFundAt:d.breakEvenPigAt?new Date(d.breakEvenPigAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):null,
     breakEvenAllAt:d.breakEvenAllAt?new Date(d.breakEvenAllAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):null,
     pigOriginDate: d.pigOriginDate||null, pigBreakevenDate: d.pigBreakevenDate||null, dayNote:d.notes||''};
-  try{ const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); dlgClose.querySelector('#closeMsg').textContent=res.ok?'ส่งข้อมูลเรียบร้อย':'ส่งไม่สำเร็จ'; }catch(e){ dlgClose.querySelector('#closeMsg').textContent='ออฟไลน์/ลิงก์ผิด'; }
+  try{ const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); dlgClose.querySelector('#closeMsg').textContent=res.ok?'ส่งข้อมูลเรียบร้อย':'ส่งไม่สำเร็จ'; toast(res.ok ? 'ส่งข้อมูลเรียบร้อย' : 'ส่งไม่สำเร็จ'); }catch(e){ dlgClose.querySelector('#closeMsg').textContent='ออฟไลน์/ลิงก์ผิด'; toast('ออฟไลน์/ลิงก์ผิด'); }
 };
 
 // Settings
@@ -566,7 +613,7 @@ dlgSettings.querySelector('#setSave').onclick=()=>{
   state.settings.fundCategories = names.map((n,i)=>({ key: state.settings.fundCategories[i]?.key || ('cat'+i), name: n.value||'หมวด', type: types[i].value==='bulk'?'bulk':'pig' }));
   const ec=[...dlgSettings.querySelectorAll('.ec-name')].map(n=>n.value.trim()).filter(Boolean);
   state.settings.expenseCats = ec.length? ec : DEFAULT_EXPCATS;
-  save(); dlgSettings.close();
+  save(); dlgSettings.close(); toast('บันทึกแล้ว');
 };
 
 // ---------- Rendering (Today/History) ----------
@@ -574,6 +621,9 @@ function renderTop(){
   const d=day(); const fp=getPigFund(d); const fb=getBulkFund(d); const ts=sum(d.sales,'amount'); const te=sum(d.expenses,'amount'); const profit=Math.max(0,ts-fp-fb-te);
   const tf=fp+fb;
   valFund.textContent=fmt(tf); valSales.textContent=fmt(ts); valExpense.textContent=fmt(te); valProfit.textContent=fmt(profit);
+  const dr=drawerTotal(d);
+  if(drawerVal) drawerVal.textContent=fmt(dr);
+  if(drawerVal2) drawerVal2.textContent=fmt(dr);
   const ses=state.settings.saleSessions||DEFAULT_SESSIONS;
   const s0=(d.sales||[]).filter(s=>s.session===(ses[0]||'เช้า')).reduce((a,b)=>a+b.amount,0);
   const s1=(d.sales||[]).filter(s=>s.session===(ses[1]||'เย็น')).reduce((a,b)=>a+b.amount,0);
@@ -621,9 +671,9 @@ function renderLists(){
     const row=document.createElement('div'); row.className='row type-fund';
     const buy = f.originDate || d.pigOriginDate; const brk = d.pigBreakevenDate;
     const extra = (f.type==='pig' && (buy || brk)) ? (`<div class="meta">ซื้อ: ${buy||'-'}${brk? ' • คืนทุน: '+brk : ''}</div>`) : '';
-    row.innerHTML=`<div><div><b>${f.type==='pig'?'🐷':'🍖'} ${f.name}</b> ${f.supplier?`<span class="meta">• ${f.supplier}</span>`:''}</div><div class="meta">${meta}</div>${extra}</div>
-      <div class="btns"><div class="meta">${right}</div> <button class="small del">ลบ</button></div>`;
-    row.querySelector('.del').onclick=()=>{ d.funds=(d.funds||[]).filter(x=>x.id!==f.id); recalc(d); save(); renderAll(); };
+    row.innerHTML=`<div><div><b>${f.type==='pig'?'🐷':'🍖'} ${f.name}</b> ${f.supplier?`<span class=\"meta\">• ${f.supplier}</span>`:''} ${f.paidFromDrawer?'<span class=\"tag\">หักลิ้นชัก</span>':''}</div><div class=\"meta\">${meta}</div>${extra}</div>
+      <div class=\"btns\"><div class=\"meta\">${right}</div> <button class=\"small del\">ลบ</button></div>`;
+    row.querySelector('.del').onclick=()=>{ if(f.paidFromDrawer){ const refund = f.type==='pig' ? (f.pigs||[]).reduce((a,p)=>a+Number(p.costTHB||0),0) : Number(f.costTHB||0); d.drawerAdj = (d.drawerAdj||0) + refund; } d.funds=(d.funds||[]).filter(x=>x.id!==f.id); recalc(d); save(); renderAll(); toast('ลบแล้ว'); };
     fundList.appendChild(row);
   });
 
@@ -646,24 +696,25 @@ function renderLists(){
       </div>`;
     row.querySelector('.mark-send').onclick=()=>{ o.sent=!o.sent; save(); renderLists(); };
     row.querySelector('.mark-paid').onclick=()=>{ o.paid=!o.paid; save(); renderLists(); };
-    row.querySelector('.to-sale').onclick=()=>{ if(o.converted) return; o.converted=true; const note = `ออเดอร์: ${o.customer}`; const method='cash'; day().sales.push({id:crypto.randomUUID(),amount:o.total,session:(state.settings.saleSessions[0]||'เช้า'),method,note,createdAt:new Date().toISOString()}); recalc(day()); save(); renderAll(); };
+    row.querySelector('.to-sale').onclick=()=>{ if(o.converted) return; o.converted=true; const note = `ออเดอร์: ${o.customer}`; const method='cash'; day().sales.push({id:crypto.randomUUID(),amount:o.total,session:(state.settings.saleSessions[0]||'เช้า'),method,note,createdAt:new Date().toISOString()}); recalc(day()); save(); renderAll(); toast('บันทึกแล้ว'); };
     row.querySelector('.del').onclick=()=>{ d.orders=d.orders.filter(x=>x.id!==o.id); save(); renderLists(); };
     orderList.appendChild(row);
   });
 
-  // Sales
+  
+// Sales
   saleList.innerHTML='';
   (d.sales||[]).forEach(s=>{
     const row=document.createElement('div'); row.className='row type-fund'+(s.checked?' done':'');
-    const methodBadge = s.method==='scan' ? '<span class="badge">สแกน</span>' : '<span class="badge">สด</span>'; const checkBadge = `<span class="badge ${s.checked?'checked-active':'checked'}">นับแล้ว</span>`;
+    const methodBadge = s.method==='scan' ? '<span class="badge">สแกน</span>' : '<span class="badge">สด</span>'; 
+    const checkBadge = `<span class="badge ${s.checked?'checked-active':'checked'}">นับแล้ว</span>`;
     row.innerHTML=`<div><div>${s.note||'ขาย'} ${methodBadge} ${checkBadge} <span class="meta">• ${s.session}</span></div><div class="meta">${new Date(s.createdAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div></div>
-      <div class="btns"><div class="meta">${fmt(s.amount)}</div> <button class="small del">ลบ</button></div>`;
-    row.querySelector('.mark-checked').onclick=()=>{ s.checked=!s.checked; save(); renderLists(); };
-    row.querySelector('.del').onclick=()=>{ d.sales=d.sales.filter(x=>x.id!==s.id); recalc(d); save(); renderAll(); };
+      <div class="btns"><div class="meta">${fmt(s.amount)}</div> <button class="small mark-checked">${s.checked?'ยกเลิกนับ':'ติ๊กนับแล้ว'}</button> <button class="small del">ลบ</button></div>`;
+    { const btn=row.querySelector('.mark-checked'); if(btn){ btn.onclick=()=>{ s.checked=!s.checked; save(); renderLists(); }; } }
+    row.querySelector('.del').onclick=()=>{ d.sales=d.sales.filter(x=>x.id!==s.id); recalc(d); save(); renderAll(); toast('ลบแล้ว'); };
     saleList.appendChild(row);
   });
-
-  // Expenses
+// Expenses
   expList.innerHTML='';
   (d.expenses||[]).forEach(e=>{
     const idx=catIndex(e.category||'อื่นๆ');
@@ -673,7 +724,7 @@ function renderLists(){
         <div class="meta">${e.note||''}</div>
       </div>
       <div class="btns"><div class="meta">${fmt(e.amount)}</div> <button class="small del">ลบ</button></div>`;
-    row.querySelector('.del').onclick=()=>{ d.expenses=d.expenses.filter(x=>x.id!==e.id); recalc(d); save(); renderAll(); };
+    row.querySelector('.del').onclick=()=>{ d.expenses=d.expenses.filter(x=>x.id!==e.id); recalc(d); save(); renderAll(); toast('ลบแล้ว'); };
     expList.appendChild(row);
   });
 }
